@@ -1,0 +1,34 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: ms-gymflow-kafka-admin
+  # Kafka: el AdminClient se arma con estas propiedades (config/KafkaAdminConfig).
+  #  - KAFKA_BOOTSTRAP_SERVERS: los 3 brokers de ec2-kafka (<ip-privada>:9092,<ip-privada>:9093,<ip-privada>:9094)
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092,localhost:9093,localhost:9094}
+    client-id: ms-gymflow-kafka-admin
+    admin:
+      # Este servicio no declara tópicos (NewTopic): los crean los microservicios, el script o la API.
+      # Si Kafka no responde al arrancar, el servicio arranca igual y cada llamada responde 503.
+      fail-fast: false
+      auto-create: false
+
+gymflow:
+  kafka-admin:
+    # Tiempo máximo que una operación espera a Kafka antes de responder 503.
+    timeout: 10s
+    # No se pueden borrar (409): son los tópicos de negocio del caso. Los internos (__consumer_offsets, ...) tampoco.
+    protegidos:
+      - reservations.events
+      - audit.timeline
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
